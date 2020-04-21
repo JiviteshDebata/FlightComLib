@@ -9,3 +9,10 @@ A Fast Low Level Flight Controller Communications Library
 ### Goals
   #### 1. Create a universal Library for debugging and controlling multiple flight control devices.
   #### 2. Make Library Easy to integrate into any project
+
+Usage for Test.exe
+
+Test.exe <port_number> <MSP command number>
+example:
+        Test.exe COM13 102
+  
