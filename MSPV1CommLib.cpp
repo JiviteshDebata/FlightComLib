@@ -6,6 +6,7 @@ class MSPV1_DEVICE{
 
     public:
     //TODO
+    //Create header reading file that reads and validates header and msp version
     //Create a structure per frame type
     //struct ATTITUDE{
 
@@ -71,6 +72,46 @@ class MSPV1_DEVICE{
             data[2]='<';
             data[3]=0;
             switch(cmd){
+                case 102:{data[4]=102;
+                        data[5]=(0^102);
+                        DWORD dNoOFBytestoWrite;         
+                        DWORD dNoOfBytesWritten = 0;     
+                        dNoOFBytestoWrite = sizeof(data);
+                        WriteStatus = WriteFile(device,        
+                                                data,     
+                                                dNoOFBytestoWrite,          
+                                                &dNoOfBytesWritten, 
+                                                NULL);
+                        ReadStatus = SetCommMask(device,EV_RXCHAR);
+                        DWORD dwEventMask;
+                        ReadStatus = WaitCommEvent(device, &dwEventMask, NULL);
+                        char Header[3];
+                        short int   accx,
+                                    accy,
+                                    accz,
+                                    gyrx,
+                                    gyry,
+                                    gyrz,
+                                    magx,
+                                    magy,
+                                    magz;
+                        char CRC;
+                        DWORD  NoBytesRead;
+                        ReadStatus=ReadFile(device,Header,5,&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&accx,sizeof(accx),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&accy,sizeof(accy),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&accz,sizeof(accz),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&gyrx,sizeof(gyrx),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&gyry,sizeof(gyry),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&gyrz,sizeof(gyrz),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&magx,sizeof(magx),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&magy,sizeof(magy),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&magz,sizeof(magz),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(device,&CRC,sizeof(CRC),&NoBytesRead,NULL);
+                        printf(" ACC x : %d ACC y : %d ACC Z :%d GYR x : %d GYR y : %d GYR z: %d MAG x : %d MAG y : %d MAG z : %d\n",accx,accy,accz,gyrx,gyry,gyrz,magx,magy,magz);
+                        PurgeComm(device,PURGE_RXCLEAR);
+                        PurgeComm(device,PURGE_TXCLEAR);
+                }break;
                 case 108:{
                         data[4]=108;
                         data[5]=(0^108);
@@ -85,7 +126,7 @@ class MSPV1_DEVICE{
                         ReadStatus = SetCommMask(device,EV_RXCHAR);
                         DWORD dwEventMask;
                         ReadStatus = WaitCommEvent(device, &dwEventMask, NULL);
-                        short int Header[3];
+                        char Header[5];
                         short int angx;
                         short int angy;
                         short int heading;
@@ -118,10 +159,16 @@ class MSPV1_DEVICE{
     }
 };
 //Test function
-int main(){
-    char port[]="\\\\.\\COM13";
+int main(int argc,char *argv[]){
+    char port[10]="\\\\.\\";
+    for(int i=0;argv[1][i]!='\0';i++)
+    {
+        port[4+i]=argv[1][i];
+    }
     MSPV1_DEVICE trial(port,115200);
+    int input =atoi(argv[2]);
+    printf("%d",input);
     while(true)
-    trial.pollDevice(108);
+    trial.pollDevice(input);
     return 1;
 }
