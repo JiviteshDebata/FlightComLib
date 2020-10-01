@@ -155,6 +155,49 @@ class MSPV1_DEVICE{
                         PurgeComm(device,PURGE_TXCLEAR);
                         //Sleep(1000);
                 }break;
+                case 106:{
+                        data[4]=106;
+                        data[5]=(0^106);
+                        DWORD dNoOFBytestoWrite;         
+                        DWORD dNoOfBytesWritten = 0;     
+                        dNoOFBytestoWrite = sizeof(data);
+                        WriteStatus = WriteFile(device,        
+                                                data,     
+                                                dNoOFBytestoWrite,          
+                                                &dNoOfBytesWritten, 
+                                                NULL);
+                        ReadStatus = SetCommMask(device,EV_RXCHAR);
+                        DWORD dwEventMask;
+                        ReadStatus = WaitCommEvent(device, &dwEventMask, NULL);
+                        char Header[5];
+                        unsigned char fix, numSat;
+                        unsigned int lat, lon;
+                        unsigned short int altitude, speed, groundCourse;
+                        char CRC;
+                        double latitude, longitude;
+
+                        DWORD NoBytesRead;
+                        ReadStatus=ReadFile(device,Header,5,&NoBytesRead,NULL);
+                        //printf("\n%s\nNo of Bytes Read %d\n",Header,NoBytesRead);
+                        //strToBinary(SerialBuffer);
+                        ReadStatus=ReadFile(*device,&fix,sizeof(fix),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&numSat,(sizeof(numSat)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&lat,(sizeof(lat)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&lon,(sizeof(lon)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&altitude,(sizeof(altitude)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&speed,(sizeof(speed)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&groundCourse,(sizeof(groundCourse)),&NoBytesRead,NULL);
+                        ReadStatus=ReadFile(*device,&CRC,(sizeof(CRC)),&NoBytesRead,NULL);
+
+                        latitude = (double)lat / 10000000.0;
+                        longitude = (double)lon / 10000000.0;
+                        
+                        printf("fix: %d, numSat: %d, lat: %lf, lon: %lf, altitude: %d, speed: %d, groundCourse: %d",fix,numSat,latitude,longitude,altitude,speed,groundCourse);
+
+                        PurgeComm(*device,PURGE_RXCLEAR);
+                        PurgeComm(*device,PURGE_TXCLEAR);
+                        //Sleep(1000);
+                }break;
             }
     }
 };
